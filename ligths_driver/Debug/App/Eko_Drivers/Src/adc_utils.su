@@ -1,0 +1,5 @@
+../App/Eko_Drivers/Src/adc_utils.c:24:9:ADC_GetMode	16	static
+../App/Eko_Drivers/Src/adc_utils.c:48:9:ADC_Continuous	16	static
+../App/Eko_Drivers/Src/adc_utils.c:67:9:ADC_Discontinuous	16	static
+../App/Eko_Drivers/Src/adc_utils.c:92:9:ADC_DMA_ENABLED	16	static
+../App/Eko_Drivers/Src/adc_utils.c:107:10:ADC_Resolution	24	static

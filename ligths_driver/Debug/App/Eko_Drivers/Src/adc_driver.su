@@ -1,0 +1,10 @@
+../App/Eko_Drivers/Src/adc_driver.c:27:26:ADC_Init_NoDMA_Independent	16	static
+../App/Eko_Drivers/Src/adc_driver.c:42:26:ADC_ReadChannel_NoDMA_Independent	32	static
+../App/Eko_Drivers/Src/adc_driver.c:96:26:ADC_ReadChannel_NoDMA_Independent_SingleConversion	24	static
+../App/Eko_Drivers/Src/adc_driver.c:144:26:ADC_ChannelsNumberConfig	16	static
+../App/Eko_Drivers/Src/adc_driver.c:166:26:ADC_ChannelsConfig	24	static
+../App/Eko_Drivers/Src/adc_driver.c:243:19:ADC_Init	24	static
+../App/Eko_Drivers/Src/adc_driver.c:273:19:ADC_ReadChannel	32	static
+../App/Eko_Drivers/Src/adc_driver.c:328:19:ADC_Get_PinVoltage	40	static
+../App/Eko_Drivers/Src/adc_driver.c:362:19:ADC_Get_ChannelRank	32	static
+../App/Eko_Drivers/Src/adc_driver.c:379:19:ADC_Get_ChannelsConfiguration	16	static

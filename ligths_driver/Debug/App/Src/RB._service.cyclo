@@ -1,0 +1,6 @@
+../App/Src/RB._service.c:30:6:getRBStatus	8
+../App/Src/RB._service.c:46:13:ADC_makeReadings	1
+../App/Src/RB._service.c:54:13:checkForMalfunction	1
+../App/Src/RB._service.c:73:13:serviceLights	10
+../App/Src/RB._service.c:117:13:checkForSafeState	3
+../App/Src/RB._service.c:129:6:RB_service	1
