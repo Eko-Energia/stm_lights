@@ -1,2 +1,6 @@
-../App/Src/LB_service.c:6:6:getLBStatus	24	static
-../App/Src/LB_service.c:21:6:LB_service	4	static
+../App/Src/LB_service.c:31:6:getLBStatus	24	static
+../App/Src/LB_service.c:46:13:checkForMalfunction	8	static
+../App/Src/LB_service.c:62:13:ADC_makeReadings	8	static
+../App/Src/LB_service.c:70:13:serviceLights	16	static
+../App/Src/LB_service.c:114:13:checkForSafeState	8	static
+../App/Src/LB_service.c:132:6:LB_service	8	static

@@ -1,4 +1,5 @@
 #include "main.h"
+#include "error_handler.h"
 #include "app.h"
 
 #define reverse_pin GPIO_PIN_15
@@ -27,6 +28,7 @@
 
 #define sidePositionOverload 1.375f
 #define middleStopOverload 0.77f
+#define wholePositionOverload 0.77f
 #define positionCirclesOverload 1.375f
 #define directionOverload 1.375f
 #define safeStateOverload 2.508f
@@ -35,6 +37,10 @@
 
 #define nodeFrameIdRB 0x780
 #define statusFrameIdRB 0x781
+
+#define nodeFrameIdLB 0x7A0
+#define statusFrameIdLB 0x7A1
+
 
 void LB_service();
 void RB_service();

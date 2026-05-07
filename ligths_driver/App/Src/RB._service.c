@@ -9,7 +9,7 @@
 #include "tim.h"
 #include <stdbool.h>
 
-float directionVoltage,
+static float directionVoltage,
 	  positionCirclesVoltage,
 	  safeStateVoltage,
 	  middleStopVoltage,
@@ -21,11 +21,13 @@ extern TIM_HandleTypeDef htim1;
 extern struct PWM_Out_signal PWM;
 extern ADC_ChannelsConfigTypeDefs cadc1;
 extern ADC_ChannelsConfigTypeDefs cadc2;
-EH_HandleTypeDef errorHandler;
-struct CAN_scheduledMsgList CAN_buffer;
-struct CAN_scheduledMsg statusFrame;
-uint32_t directionTimer = 0;
-bool turnStatus = false;
+static uint32_t directionTimer = 0;
+static uint32_t safeStateTimer = 0;
+static bool turnStatus = false;
+static EH_HandleTypeDef errorHandler;
+static struct CAN_scheduledMsgList CAN_buffer;
+static struct CAN_scheduledMsg statusFrame;
+
 
 void getRBStatus(uint8_t *data, void *context) {
     uint8_t status = 0;
@@ -52,19 +54,16 @@ static void ADC_makeReadings(){
 }
 
 static void checkForMalfunction(){
-	if((sidePositionVoltage < voltageLow && positionStatus) || sidePositionVoltage > sidePositionOverload ){
+	if((sidePositionVoltage < voltageLow && getPositionStatus()) || sidePositionVoltage > sidePositionOverload ){
 		// error
 	}
-	if((middleStopVoltage < voltageLow && brakeStatus) || middleStopVoltage > middleStopOverload ){
+	if((middleStopVoltage < voltageLow && getBrakeStatus()) || middleStopVoltage > middleStopOverload ){
 		// error
 	}
-	if((positionCirclesVoltage < voltageLow && positionStatus) || positionCirclesVoltage > positionCirclesOverload ){
+	if((positionCirclesVoltage < voltageLow && getPositionStatus()) || positionCirclesVoltage > positionCirclesOverload ){
 		// error
 	}
-	if((directionVoltage < voltageLow && rightTurnStatus) || directionVoltage > directionOverload ){
-		// error
-	}
-	if((safeStateVoltage < voltageLow && safeStateStatus) || safeStateVoltage > safeStateOverload ){
+	if((directionVoltage < voltageLow && getRightTurnStatus()) || directionVoltage > directionOverload ){
 		// error
 	}
 
@@ -83,30 +82,38 @@ static void serviceLights(){
 		else{
 			if((now - directionTimer) >= (directionPeriod - directionHigh)){
 				HAL_GPIO_WritePin(direction_port, direction_pin, GPIO_PIN_SET);
+				turnStatus = true;
+				directionTimer = now;
 			}
 		}
 	}
+	else{
+		HAL_GPIO_WritePin(direction_port, direction_pin, GPIO_PIN_RESET);
+		turnStatus = false;
+	}
+
 	if(getPositionChangeFlag()){
 		if(getPositionStatus()){
 			HAL_GPIO_WritePin(sidePosition_port, sidePosition_pin, GPIO_PIN_SET);
-			HAL_GPIO_WritePin(wholePosition_port, wholePosition_pin, GPIO_PIN_SET);
-			PWM_Out_setDuty(&PWM,95.0f);
+			HAL_GPIO_WritePin(safeState_port, safeState_pin, GPIO_PIN_RESET);
+			PWM_Out_setDuty(&PWM,95.0f); // Position Circles
 			setPositionChangeFlagFalse();
 		}
 		else{
 			HAL_GPIO_WritePin(sidePosition_port, sidePosition_pin, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(wholePosition_port, wholePosition_pin, GPIO_PIN_RESET);
-			PWM_Out_setDuty(&PWM,0.0f);
+			PWM_Out_setDuty(&PWM,0.0f); // Position circles
 			setPositionChangeFlagFalse();
 		}
 	}
 	if(getBrakeChangeFlag()){
 		if(getBrakeStatus()){
 			HAL_GPIO_WritePin(sideStop_port, sideStop_pin, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(middleStop_port, middleStop_pin, GPIO_PIN_SET);
 			setBrakeChangeFlagFalse();
 		}
 		else{
 			HAL_GPIO_WritePin(sideStop_port, sideStop_pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(middleStop_port, middleStop_pin, GPIO_PIN_RESET);
 			setBrakeChangeFlagFalse();
 		}
 	}
@@ -119,8 +126,14 @@ static void checkForSafeState(){
 		while(true){
 			serviceLights();
 			if(getSafeStateStatus()){
+				safeStateTimer = HAL_GetTick();
 				setSafeStateStatusFalse();
+				PWM_Out_setDuty(&PWM,0.0f); // Position circles
 				HAL_GPIO_WritePin(safeState_port, safeState_pin, GPIO_PIN_SET);
+			}
+			if((HAL_GetTick() - safeStateTimer > 1000) && !getSafeStateStatus()){
+				HAL_GPIO_WritePin(safeState_port, safeState_pin, GPIO_PIN_RESET);
+				break;
 			}
 		}
 	}
@@ -131,7 +144,7 @@ void RB_service(){
 	statusFrame.header.DLC = 1;
 	statusFrame.header.StdId = statusFrameIdRB;
 	statusFrame.periodMs = 1000;
-	statusFrame.getData = *getRBStatus;
+	statusFrame.getData = &getRBStatus;
 	statusFrame.lastTick = 0;
 	CAN_AddScheduledMsg(&statusFrame,&CAN_buffer);
 	while(true){

@@ -149,40 +149,28 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 			}
 			break;
 
-        case EngineRight_STATIC_TPDO1:
-        {
-            int16_t torque = (int16_t)((CAN_currentMessageData[1] << 8) |
-                                       CAN_currentMessageData[0]);
+		case Dashboard_ControlFrameID:
+		{
+		    uint8_t prnd =
+		        ((CAN_currentMessageData[PRND_BITPOS / 8] >> (PRND_BITPOS % 8)) &
+		         ((1U << (8 - (PRND_BITPOS % 8))) - 1)) |
 
-            if(torque < 0 && !getReverseStatus()){
-                setReverseStatusTrue();
-                setReverseChangeFlagTrue();
-            }
-            else if(torque >= 0 && getReverseStatus()){
-                setReverseStatusFalse();
-                setReverseChangeFlagTrue();
-            }
-            break;
-        }
+		        ((CAN_currentMessageData[(PRND_BITPOS / 8) + 1] &
+		         ((1U << (PRND_LENGTH - (8 - (PRND_BITPOS % 8)))) - 1))
+		         << (8 - (PRND_BITPOS % 8)));
 
-        case EngineLeft_STATIC_TPDO1:
-        {
-            int16_t torque = (int16_t)((CAN_currentMessageData[1] << 8) |
-                                       CAN_currentMessageData[0]);
+		    if (prnd == PRND_REVERSE_VALUE && !getReverseStatus()) {
+		        setReverseStatusTrue();
+		        setReverseChangeFlagTrue();
+		    }
+		    else if (prnd != PRND_REVERSE_VALUE && getReverseStatus()) {
+		        setReverseStatusFalse();
+		        setReverseChangeFlagTrue();
+		    }
 
-            if(torque < 0 && !getReverseStatus()){
-                setReverseStatusTrue();
-                setReverseChangeFlagTrue();
-            }
-            else if(torque >= 0 && getBrakeStatus()){
-                setReverseStatusFalse();
-                setReverseChangeFlagTrue();
-            }
-
-            break;
-        }
+		    break;
+		}
 		case SafeStateFrameID:
-			HAL_Delay(50);
             setBrakeStatusFalse();
             setBrakeChangeFlagTrue();
             setReverseStatusFalse();
@@ -220,8 +208,8 @@ void static CAN_setFilters(){
     canfilterconfig.FilterBank = 1;
 
     canfilterconfig.FilterIdHigh =
-        ((uint16_t)(EngineRight_STATIC_TPDO1 << 5)) |
-        ((uint16_t)(EngineLeft_STATIC_TPDO1 << 5) << 16);
+        ((uint16_t)(Dashboard_ControlFrameID << 5)) |
+        ((uint16_t)(Dashboard_ControlFrameID << 5) << 16);
 
     canfilterconfig.FilterIdLow = 0;
 
