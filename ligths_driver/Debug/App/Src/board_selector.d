@@ -1,5 +1,8 @@
 App/Src/board_selector.o: ../App/Src/board_selector.c \
  C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Inc/board_selector.h \
+ C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Eko_Drivers/Inc/adc_driver.h \
+ C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Eko_Drivers/Inc/adc_utils.h \
+ C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Eko_Drivers/Inc/stm32_family.h \
  ../Core/Inc/main.h ../Drivers/STM32F3xx_HAL_Driver/Inc/stm32f3xx_hal.h \
  ../Core/Inc/stm32f3xx_hal_conf.h \
  ../Drivers/STM32F3xx_HAL_Driver/Inc/stm32f3xx_hal_rcc.h \
@@ -32,11 +35,11 @@ App/Src/board_selector.o: ../App/Src/board_selector.c \
  ../Drivers/STM32F3xx_HAL_Driver/Inc/stm32f3xx_hal_tim_ex.h \
  ../Drivers/STM32F3xx_HAL_Driver/Inc/stm32f3xx_hal_uart.h \
  ../Drivers/STM32F3xx_HAL_Driver/Inc/stm32f3xx_hal_uart_ex.h \
- C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Eko_Drivers/Inc/adc_driver.h \
- C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Eko_Drivers/Inc/adc_utils.h \
- C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Eko_Drivers/Inc/stm32_family.h \
  C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Eko_Drivers/Inc/adc_conf.h
 C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Inc/board_selector.h:
+C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Eko_Drivers/Inc/adc_driver.h:
+C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Eko_Drivers/Inc/adc_utils.h:
+C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Eko_Drivers/Inc/stm32_family.h:
 ../Core/Inc/main.h:
 ../Drivers/STM32F3xx_HAL_Driver/Inc/stm32f3xx_hal.h:
 ../Core/Inc/stm32f3xx_hal_conf.h:
@@ -70,7 +73,4 @@ C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Inc/board_selector.h:
 ../Drivers/STM32F3xx_HAL_Driver/Inc/stm32f3xx_hal_tim_ex.h:
 ../Drivers/STM32F3xx_HAL_Driver/Inc/stm32f3xx_hal_uart.h:
 ../Drivers/STM32F3xx_HAL_Driver/Inc/stm32f3xx_hal_uart_ex.h:
-C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Eko_Drivers/Inc/adc_driver.h:
-C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Eko_Drivers/Inc/adc_utils.h:
-C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Eko_Drivers/Inc/stm32_family.h:
 C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Eko_Drivers/Inc/adc_conf.h:

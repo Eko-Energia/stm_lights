@@ -1,5 +1,6 @@
-App/Src/app.o: ../App/Src/app.c ../Core/Inc/main.h \
- ../Drivers/STM32F3xx_HAL_Driver/Inc/stm32f3xx_hal.h \
+App/Src/app.o: ../App/Src/app.c \
+ C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Inc/app.h \
+ ../Core/Inc/main.h ../Drivers/STM32F3xx_HAL_Driver/Inc/stm32f3xx_hal.h \
  ../Core/Inc/stm32f3xx_hal_conf.h \
  ../Drivers/STM32F3xx_HAL_Driver/Inc/stm32f3xx_hal_rcc.h \
  ../Drivers/STM32F3xx_HAL_Driver/Inc/stm32f3xx_hal_def.h \
@@ -31,21 +32,16 @@ App/Src/app.o: ../App/Src/app.c ../Core/Inc/main.h \
  ../Drivers/STM32F3xx_HAL_Driver/Inc/stm32f3xx_hal_tim_ex.h \
  ../Drivers/STM32F3xx_HAL_Driver/Inc/stm32f3xx_hal_uart.h \
  ../Drivers/STM32F3xx_HAL_Driver/Inc/stm32f3xx_hal_uart_ex.h \
+ C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Inc/board_selector.h \
+ C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Inc/rear_service.h \
+ C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Inc/front_service.h \
  C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Eko_Drivers/Inc/can_driver.h \
  C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Eko_Drivers/Inc/can_id_list.h \
- C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Eko_Drivers/Inc/error_handler.h \
- C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Eko_Drivers/Inc/can_driver.h \
- C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Inc/board_selector.h \
- C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Inc/app.h \
- C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Eko_Drivers/Inc/pwm_driver.h \
- C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Inc/global_variables.h \
  C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Eko_Drivers/Inc/adc_driver.h \
  C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Eko_Drivers/Inc/adc_utils.h \
  C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Eko_Drivers/Inc/stm32_family.h \
- C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Eko_Drivers/Inc/adc_conf.h \
- C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Inc/rear_service.h \
- C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Inc/app.h \
- C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Inc/front_service.h
+ C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Eko_Drivers/Inc/adc_conf.h
+C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Inc/app.h:
 ../Core/Inc/main.h:
 ../Drivers/STM32F3xx_HAL_Driver/Inc/stm32f3xx_hal.h:
 ../Core/Inc/stm32f3xx_hal_conf.h:
@@ -79,18 +75,12 @@ App/Src/app.o: ../App/Src/app.c ../Core/Inc/main.h \
 ../Drivers/STM32F3xx_HAL_Driver/Inc/stm32f3xx_hal_tim_ex.h:
 ../Drivers/STM32F3xx_HAL_Driver/Inc/stm32f3xx_hal_uart.h:
 ../Drivers/STM32F3xx_HAL_Driver/Inc/stm32f3xx_hal_uart_ex.h:
+C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Inc/board_selector.h:
+C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Inc/rear_service.h:
+C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Inc/front_service.h:
 C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Eko_Drivers/Inc/can_driver.h:
 C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Eko_Drivers/Inc/can_id_list.h:
-C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Eko_Drivers/Inc/error_handler.h:
-C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Eko_Drivers/Inc/can_driver.h:
-C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Inc/board_selector.h:
-C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Inc/app.h:
-C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Eko_Drivers/Inc/pwm_driver.h:
-C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Inc/global_variables.h:
 C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Eko_Drivers/Inc/adc_driver.h:
 C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Eko_Drivers/Inc/adc_utils.h:
 C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Eko_Drivers/Inc/stm32_family.h:
 C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Eko_Drivers/Inc/adc_conf.h:
-C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Inc/rear_service.h:
-C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Inc/app.h:
-C:/Users/lukas/STM32CubeIDE/ligths_driver/App/Inc/front_service.h:

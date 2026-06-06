@@ -5,31 +5,25 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../App/Src/LB_service.c \
 ../App/Src/LF_service.c \
-../App/Src/RB._service.c \
 ../App/Src/RF_service.c \
 ../App/Src/app.c \
 ../App/Src/board_selector.c \
-../App/Src/global_variables.c 
+../App/Src/rear_service.c 
 
 OBJS += \
-./App/Src/LB_service.o \
 ./App/Src/LF_service.o \
-./App/Src/RB._service.o \
 ./App/Src/RF_service.o \
 ./App/Src/app.o \
 ./App/Src/board_selector.o \
-./App/Src/global_variables.o 
+./App/Src/rear_service.o 
 
 C_DEPS += \
-./App/Src/LB_service.d \
 ./App/Src/LF_service.d \
-./App/Src/RB._service.d \
 ./App/Src/RF_service.d \
 ./App/Src/app.d \
 ./App/Src/board_selector.d \
-./App/Src/global_variables.d 
+./App/Src/rear_service.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
@@ -39,7 +33,7 @@ App/Src/%.o App/Src/%.su App/Src/%.cyclo: ../App/Src/%.c App/Src/subdir.mk
 clean: clean-App-2f-Src
 
 clean-App-2f-Src:
-	-$(RM) ./App/Src/LB_service.cyclo ./App/Src/LB_service.d ./App/Src/LB_service.o ./App/Src/LB_service.su ./App/Src/LF_service.cyclo ./App/Src/LF_service.d ./App/Src/LF_service.o ./App/Src/LF_service.su ./App/Src/RB._service.cyclo ./App/Src/RB._service.d ./App/Src/RB._service.o ./App/Src/RB._service.su ./App/Src/RF_service.cyclo ./App/Src/RF_service.d ./App/Src/RF_service.o ./App/Src/RF_service.su ./App/Src/app.cyclo ./App/Src/app.d ./App/Src/app.o ./App/Src/app.su ./App/Src/board_selector.cyclo ./App/Src/board_selector.d ./App/Src/board_selector.o ./App/Src/board_selector.su ./App/Src/global_variables.cyclo ./App/Src/global_variables.d ./App/Src/global_variables.o ./App/Src/global_variables.su
+	-$(RM) ./App/Src/LF_service.cyclo ./App/Src/LF_service.d ./App/Src/LF_service.o ./App/Src/LF_service.su ./App/Src/RF_service.cyclo ./App/Src/RF_service.d ./App/Src/RF_service.o ./App/Src/RF_service.su ./App/Src/app.cyclo ./App/Src/app.d ./App/Src/app.o ./App/Src/app.su ./App/Src/board_selector.cyclo ./App/Src/board_selector.d ./App/Src/board_selector.o ./App/Src/board_selector.su ./App/Src/rear_service.cyclo ./App/Src/rear_service.d ./App/Src/rear_service.o ./App/Src/rear_service.su
 
 .PHONY: clean-App-2f-Src
 

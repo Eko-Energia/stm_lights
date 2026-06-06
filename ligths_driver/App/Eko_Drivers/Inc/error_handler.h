@@ -28,7 +28,7 @@ extern "C"
 #define ERROR_FRAME_DLC (8)
 
 /** @brief Safe State frame ID (highest priority) */
-#define SAFE_STATE_FRAME_ID (0x000)
+//#define SAFE_STATE_FRAME_ID (0x000)
 
 /** @brief Maximum diagnostic data bytes */
 #define ERROR_SPECIFIC_DATA_SIZE (5)

@@ -55,8 +55,7 @@
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
-extern DMA_HandleTypeDef hdma_adc1;
-extern DMA_HandleTypeDef hdma_adc2;
+extern CAN_HandleTypeDef hcan;
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -200,31 +199,31 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
-  * @brief This function handles DMA1 channel1 global interrupt.
+  * @brief This function handles CAN RX0 interrupt.
   */
-void DMA1_Channel1_IRQHandler(void)
+void CAN_RX0_IRQHandler(void)
 {
-  /* USER CODE BEGIN DMA1_Channel1_IRQn 0 */
+  /* USER CODE BEGIN CAN_RX0_IRQn 0 */
 
-  /* USER CODE END DMA1_Channel1_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_adc1);
-  /* USER CODE BEGIN DMA1_Channel1_IRQn 1 */
+  /* USER CODE END CAN_RX0_IRQn 0 */
+  HAL_CAN_IRQHandler(&hcan);
+  /* USER CODE BEGIN CAN_RX0_IRQn 1 */
 
-  /* USER CODE END DMA1_Channel1_IRQn 1 */
+  /* USER CODE END CAN_RX0_IRQn 1 */
 }
 
 /**
-  * @brief This function handles DMA1 channel2 global interrupt.
+  * @brief This function handles CAN RX1 interrupt.
   */
-void DMA1_Channel2_IRQHandler(void)
+void CAN_RX1_IRQHandler(void)
 {
-  /* USER CODE BEGIN DMA1_Channel2_IRQn 0 */
+  /* USER CODE BEGIN CAN_RX1_IRQn 0 */
 
-  /* USER CODE END DMA1_Channel2_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_adc2);
-  /* USER CODE BEGIN DMA1_Channel2_IRQn 1 */
+  /* USER CODE END CAN_RX1_IRQn 0 */
+  HAL_CAN_IRQHandler(&hcan);
+  /* USER CODE BEGIN CAN_RX1_IRQn 1 */
 
-  /* USER CODE END DMA1_Channel2_IRQn 1 */
+  /* USER CODE END CAN_RX1_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */
