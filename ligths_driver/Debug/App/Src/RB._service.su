@@ -1,6 +1,0 @@
-../App/Src/RB._service.c:32:6:getRBStatus	24	static
-../App/Src/RB._service.c:48:13:ADC_makeReadings	8	static
-../App/Src/RB._service.c:56:13:checkForMalfunction	8	static
-../App/Src/RB._service.c:72:13:serviceLights	16	static
-../App/Src/RB._service.c:124:13:checkForSafeState	8	static
-../App/Src/RB._service.c:142:6:RB_service	8	static

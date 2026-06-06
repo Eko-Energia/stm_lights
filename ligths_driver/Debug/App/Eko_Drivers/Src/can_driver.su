@@ -1,4 +1,0 @@
-../App/Eko_Drivers/Src/can_driver.c:31:6:CAN_Init	56	static
-../App/Eko_Drivers/Src/can_driver.c:70:19:CAN_AddScheduledMsg	72	static
-../App/Eko_Drivers/Src/can_driver.c:107:19:CAN_RemoveScheduledMsg	32	static
-../App/Eko_Drivers/Src/can_driver.c:133:6:CAN_HandleScheduled	40	static
