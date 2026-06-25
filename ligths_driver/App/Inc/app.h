@@ -27,7 +27,7 @@
 #define PRND_REVERSE_VALUE (1)
 #define DIRECTION_PERIOD (1000)
 #define DIRECTION_HIGH (500)
-#define BREAK_HALL_EPS (100)
+#define BREAK_HALL_EPS (2)
 #define CAN_STD_ID(id) ((uint16_t)((id) << 5))
 
 // Shared light state, written while interpreting CAN frames and read by the board services.

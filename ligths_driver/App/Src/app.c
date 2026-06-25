@@ -100,44 +100,18 @@ void APP_InterpretFrames(void)
 
 		if (leftSignal != leftTurnStatus)
 		{
+			leftTurnStatus = leftSignal;
 			indicatorChangeFlag = true;
-
-			if (leftSignal)
-			{
-				leftTurnStatus = true;
-			}
-			else
-			{
-				leftTurnStatus = false;
-			}
 		}
-
 		if (rightSignal != rightTurnStatus)
 		{
+			rightTurnStatus = rightSignal;
 			indicatorChangeFlag = true;
-
-			if (rightSignal)
-			{
-				rightTurnStatus = true;
-			}
-			else
-			{
-				rightTurnStatus = false;
-			}
 		}
-
 		if (emergencySignal != emergencyStatus)
 		{
+			emergencyStatus = emergencySignal;
 			indicatorChangeFlag = true;
-
-			if (emergencySignal)
-			{
-				emergencyStatus = true;
-			}
-			else
-			{
-				emergencyStatus = false;
-			}
 		}
 	}
 
@@ -145,100 +119,25 @@ void APP_InterpretFrames(void)
 	{
 		dashboardImportantDataCheck = false;
 
-		switch (canDashboardImportantData[LIGHT_SWITCH_INTPOS])
+		const uint8_t mode = canDashboardImportantData[LIGHT_SWITCH_INTPOS];
+		const bool wantPosition = (mode >= 1U);
+		const bool wantLowBeam  = (mode == 2U);
+		const bool wantHighBeam = (mode == 3U);
+
+		if (wantPosition != positionStatus)
 		{
-			case 0:
-				if (positionStatus)
-				{
-					positionStatus = false;
-					positionChangeFlag = true;
-					break;
-				}
-
-				if (lowBeamStatus)
-				{
-					lowBeamStatus = false;
-					lowBeamChangeFlag = true;
-					break;
-				}
-
-				if (highBeamStatus)
-				{
-					highBeamStatus = false;
-					highBeamChangeFlag = true;
-					break;
-				}
-
-				break;
-
-			case 1:
-				if (!positionStatus)
-				{
-					positionStatus = true;
-					positionChangeFlag = true;
-				}
-
-				if (lowBeamStatus)
-				{
-					lowBeamStatus = false;
-					lowBeamChangeFlag = true;
-					break;
-				}
-
-				if (highBeamStatus)
-				{
-					highBeamStatus = false;
-					highBeamChangeFlag = true;
-					break;
-				}
-
-				break;
-
-			case 2:
-				if (!lowBeamStatus)
-				{
-					lowBeamStatus = true;
-					lowBeamChangeFlag = true;
-				}
-
-				// Position lights stay on while low beams are active.
-				if (!positionStatus)
-				{
-					positionStatus = true;
-					positionChangeFlag = true;
-				}
-
-				if (highBeamStatus)
-				{
-					highBeamStatus = false;
-					highBeamChangeFlag = true;
-					break;
-				}
-
-				break;
-
-			case 3:
-				if (!highBeamStatus)
-				{
-					highBeamStatus = true;
-					highBeamChangeFlag = true;
-				}
-
-				if (lowBeamStatus)
-				{
-					lowBeamStatus = false;
-					lowBeamChangeFlag = true;
-					break;
-				}
-
-				// Position lights stay on while high beams are active.
-				if (!positionStatus)
-				{
-					positionStatus = true;
-					positionChangeFlag = true;
-				}
-
-				break;
+			positionStatus = wantPosition;
+			positionChangeFlag = true;
+		}
+		if (wantLowBeam != lowBeamStatus)
+		{
+			lowBeamStatus = wantLowBeam;
+			lowBeamChangeFlag = true;
+		}
+		if (wantHighBeam != highBeamStatus)
+		{
+			highBeamStatus = wantHighBeam;
+			highBeamChangeFlag = true;
 		}
 	}
 
@@ -246,15 +145,10 @@ void APP_InterpretFrames(void)
 	{
 		pedalsJtnsWorksDataCheck = false;
 
-		if (canPedalsJtnsWorksData[BREAKS_HALL_INTPOS] > BREAK_HALL_EPS && !brakeStatus)
+		const bool wantBrake = canPedalsJtnsWorksData[BREAKS_HALL_INTPOS] > BREAK_HALL_EPS;
+		if (wantBrake != brakeStatus)
 		{
-			brakeStatus = true;
-			brakeChangeFlag = true;
-		}
-
-		if (canPedalsJtnsWorksData[BREAKS_HALL_INTPOS] < BREAK_HALL_EPS && brakeStatus)
-		{
-			brakeStatus = false;
+			brakeStatus = wantBrake;
 			brakeChangeFlag = true;
 		}
 	}
@@ -263,22 +157,12 @@ void APP_InterpretFrames(void)
 	{
 		dashboardControlDataCheck = false;
 
-		const uint8_t prnd =
-			((canDashboardControlData[PRND_BITPOS / 8] >>
-			(PRND_BITPOS % 8)) &
-			((1U << (8 - (PRND_BITPOS % 8))) - 1)) |
-			((canDashboardControlData[(PRND_BITPOS / 8) + 1] &
-			((1U << (PRND_LENGTH - (8 - (PRND_BITPOS % 8)))) - 1))
-			<< (8 - (PRND_BITPOS % 8)));
+		const uint8_t prnd = (uint8_t)((canDashboardControlData[1] >> 6) | (canDashboardControlData[2] << 2));
 
-		if (prnd == PRND_REVERSE_VALUE && !reverseStatus)
+		const bool wantReverse = (prnd == PRND_REVERSE_VALUE);
+		if (wantReverse != reverseStatus)
 		{
-			reverseStatus = true;
-			reverseChangeFlag = true;
-		}
-		else if (prnd != PRND_REVERSE_VALUE && reverseStatus)
-		{
-			reverseStatus = false;
+			reverseStatus = wantReverse;
 			reverseChangeFlag = true;
 		}
 	}
@@ -339,7 +223,6 @@ void APP_Main(void)
 	HAL_ADC_Init(&hadc2);
 	ADC_Init(&hadc1, &cadc1);
 	ADC_Init(&hadc2, &cadc2);
-	HAL_CAN_ActivateNotification(&hcan, CAN_IT_RX_FIFO0_MSG_PENDING);
 	SetCanFilters();
 
 	const board_e board = BOARD_ChooseBoard();
@@ -360,5 +243,4 @@ void APP_Main(void)
 		case BOARD_UNKNOWN:
 			break;
 	}
-	RearService(true);
 }

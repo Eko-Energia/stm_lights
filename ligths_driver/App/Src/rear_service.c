@@ -50,58 +50,33 @@ static void ReadBoardStatus(uint8_t *data, void *context)
 	}
 }
 
+static void CheckChannel(float voltage, float overload, uint16_t openLoadCode,
+                         GPIO_TypeDef *port, uint16_t pin)
+{
+	if (voltage < VOLTAGE_LOW && HAL_GPIO_ReadPin(port, pin) == GPIO_PIN_SET)
+	{
+		EH_report(&errorHandler, openLoadCode, ERROR_SEVERITY_ERROR);
+	}
+	if (voltage > overload)
+	{
+		HAL_GPIO_WritePin(port, pin, GPIO_PIN_RESET);
+		EH_stop(&errorHandler, 0xDEAD, ERROR_SEVERITY_ERROR);
+	}
+}
+
 static void CheckForMalfunction(bool left)
 {
-	if (safeStateVoltage < VOLTAGE_LOW && HAL_GPIO_ReadPin(SAFE_STATE_PORT, SAFE_STATE_PIN) == GPIO_PIN_SET)
+	CheckChannel(safeStateVoltage,       SAFE_STATE_OVERLOAD,       0x01, SAFE_STATE_PORT,       SAFE_STATE_PIN);
+	if (left)
 	{
-		EH_report(&errorHandler, 0x01, ERROR_SEVERITY_ERROR);
+		CheckChannel(wholePositionVoltage, WHOLE_POSITION_OVERLOAD, 0x02, WHOLE_POSITION_PORT, WHOLE_POSITION_PIN);
 	}
-	if (safeStateVoltage > SAFE_STATE_OVERLOAD)
+	else
 	{
-		HAL_GPIO_WritePin(SAFE_STATE_PORT, SAFE_STATE_PIN, GPIO_PIN_RESET);
-		EH_stop(&errorHandler, 0xDEAD, ERROR_SEVERITY_ERROR);
+		CheckChannel(middleStopVoltage, MIDDLE_STOP_OVERLOAD,       0x02, MIDDLE_STOP_PORT,    MIDDLE_STOP_PIN);
 	}
-	if(left){
-
-		if (wholePositionVoltage < VOLTAGE_LOW && HAL_GPIO_ReadPin(WHOLE_POSITION_PORT, WHOLE_POSITION_PIN) == GPIO_PIN_SET)
-		{
-			EH_report(&errorHandler, 0x02, ERROR_SEVERITY_ERROR);
-		}
-		if (wholePositionVoltage > WHOLE_POSITION_OVERLOAD)
-		{
-			HAL_GPIO_WritePin(WHOLE_POSITION_PORT, WHOLE_POSITION_PIN, GPIO_PIN_RESET);
-			EH_stop(&errorHandler, 0xDEAD, ERROR_SEVERITY_ERROR);
-		}
-	}
-	else{
-		if (middleStopVoltage < VOLTAGE_LOW && HAL_GPIO_ReadPin(MIDDLE_STOP_PORT, MIDDLE_STOP_PIN) == GPIO_PIN_SET)
-		{
-			EH_report(&errorHandler, 0x02, ERROR_SEVERITY_ERROR);
-		}
-		if (middleStopVoltage > MIDDLE_STOP_OVERLOAD)
-		{
-			HAL_GPIO_WritePin(MIDDLE_STOP_PORT, MIDDLE_STOP_PIN, GPIO_PIN_RESET);
-			EH_stop(&errorHandler, 0xDEAD, ERROR_SEVERITY_ERROR);
-		}
-	}
-	if (positionCirclesVoltage < VOLTAGE_LOW && HAL_GPIO_ReadPin(POSITION_CIRCLES_PORT, POSITION_CIRCLES_PIN) == GPIO_PIN_SET)
-	{
-		EH_report(&errorHandler, 0x03, ERROR_SEVERITY_ERROR);
-	}
-	if (positionCirclesVoltage > POSITION_CIRCLES_OVERLOAD)
-	{
-		HAL_GPIO_WritePin(POSITION_CIRCLES_PORT, POSITION_CIRCLES_PIN, GPIO_PIN_RESET);
-		EH_stop(&errorHandler, 0xDEAD, ERROR_SEVERITY_ERROR);
-	}
-	if (directionVoltage < VOLTAGE_LOW && HAL_GPIO_ReadPin(DIRECTION_PORT, DIRECTION_PIN) == GPIO_PIN_SET)
-	{
-		EH_report(&errorHandler, 0x04, ERROR_SEVERITY_ERROR);
-	}
-	if (directionVoltage > DIRECTION_OVERLOAD)
-	{
-		HAL_GPIO_WritePin(DIRECTION_PORT, DIRECTION_PIN, GPIO_PIN_RESET);
-		EH_stop(&errorHandler, 0xDEAD, ERROR_SEVERITY_ERROR);
-	}
+	CheckChannel(positionCirclesVoltage, POSITION_CIRCLES_OVERLOAD, 0x03, POSITION_CIRCLES_PORT, POSITION_CIRCLES_PIN);
+	CheckChannel(directionVoltage,       DIRECTION_OVERLOAD,        0x04, DIRECTION_PORT,        DIRECTION_PIN);
 }
 
 static void MakeAdcReadings(bool left)
@@ -161,58 +136,32 @@ static void ServiceLights(bool left)
 
 	if (positionChangeFlag)
 	{
-		if (positionStatus)
+		const GPIO_PinState s = positionStatus ? GPIO_PIN_SET : GPIO_PIN_RESET;
+		HAL_GPIO_WritePin(SIDE_POSITION_PORT, SIDE_POSITION_PIN, s);
+		if (left)
 		{
-			HAL_GPIO_WritePin(SIDE_POSITION_PORT, SIDE_POSITION_PIN, GPIO_PIN_SET);
-			if(left){
-				HAL_GPIO_WritePin(WHOLE_POSITION_PORT, WHOLE_POSITION_PIN, GPIO_PIN_SET);
-			}
-			if (!turnStatus)
-			{
-				HAL_GPIO_WritePin(POSITION_CIRCLES_PORT, POSITION_CIRCLES_PIN, GPIO_PIN_SET);
-			}
-			positionChangeFlag = false;
+			HAL_GPIO_WritePin(WHOLE_POSITION_PORT, WHOLE_POSITION_PIN, s);
 		}
-		else
+		if (!positionStatus || !turnStatus)
 		{
-			HAL_GPIO_WritePin(SIDE_POSITION_PORT, SIDE_POSITION_PIN, GPIO_PIN_RESET);
-			if(left){
-				HAL_GPIO_WritePin(WHOLE_POSITION_PORT, WHOLE_POSITION_PIN, GPIO_PIN_RESET);
-			}
-			HAL_GPIO_WritePin(POSITION_CIRCLES_PORT, POSITION_CIRCLES_PIN, GPIO_PIN_RESET);
-			positionChangeFlag = false;
+			HAL_GPIO_WritePin(POSITION_CIRCLES_PORT, POSITION_CIRCLES_PIN, s);
 		}
+		positionChangeFlag = false;
 	}
 	if (brakeChangeFlag)
 	{
-		if (brakeStatus)
+		const GPIO_PinState s = brakeStatus ? GPIO_PIN_SET : GPIO_PIN_RESET;
+		HAL_GPIO_WritePin(SIDE_STOP_PORT, SIDE_STOP_PIN, s);
+		if (!left)
 		{
-			HAL_GPIO_WritePin(SIDE_STOP_PORT, SIDE_STOP_PIN, GPIO_PIN_SET);
-			if(!left){
-				HAL_GPIO_WritePin(MIDDLE_STOP_PORT, MIDDLE_STOP_PIN, GPIO_PIN_SET);
-			}
-			brakeChangeFlag = false;
+			HAL_GPIO_WritePin(MIDDLE_STOP_PORT, MIDDLE_STOP_PIN, s);
 		}
-		else
-		{
-			HAL_GPIO_WritePin(SIDE_STOP_PORT, SIDE_STOP_PIN, GPIO_PIN_RESET);
-			if(!left){
-				HAL_GPIO_WritePin(MIDDLE_STOP_PORT, MIDDLE_STOP_PIN, GPIO_PIN_RESET);
-			}
-			brakeChangeFlag = false;
-		}
+		brakeChangeFlag = false;
 	}
 	if (reverseChangeFlag)
 	{
+		HAL_GPIO_WritePin(REVERSE_PORT, REVERSE_PIN, reverseStatus ? GPIO_PIN_SET : GPIO_PIN_RESET);
 		reverseChangeFlag = false;
-		if (reverseStatus)
-		{
-			HAL_GPIO_WritePin(REVERSE_PORT, REVERSE_PIN, GPIO_PIN_SET);
-		}
-		else
-		{
-			HAL_GPIO_WritePin(REVERSE_PORT, REVERSE_PIN, GPIO_PIN_RESET);
-		}
 	}
 }
 
@@ -268,7 +217,7 @@ void RearService(bool left)
 		CAN_HandleScheduled(&hcan, &canBuffer);
 		APP_InterpretFrames();
 		MakeAdcReadings(left);
-		CheckForMalfunction(left);
+		//CheckForMalfunction(left);
 		ServiceLights(left);
 		CheckForSafeState(left);
 	}

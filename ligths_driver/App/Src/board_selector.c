@@ -11,7 +11,7 @@
 #include <math.h>
 
 // Half-width of the voltage window accepted around each board's nominal level.
-#define SELECTOR_VOLTAGE_TOLERANCE (0.2f)
+#define SELECTOR_VOLTAGE_TOLERANCE (0.3f)
 
 extern ADC_ChannelsConfigTypeDefs cadc2;
 extern ADC_HandleTypeDef hadc2;
