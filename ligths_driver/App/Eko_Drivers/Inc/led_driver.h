@@ -19,7 +19,7 @@
 typedef enum {
     LED_OFF = 0,          /**< LED is turned off */
     LED_FAST_BLINK = 100, /**< LED toggles at fast blink interval (ms) */
-    LED_BLINK = 1000,     /**< LED toggles at regular blink interval (ms) */
+    LED_BLINK = 500,     /**< LED toggles at regular blink interval (ms) */
     LED_ON = 1001         /**< LED is permanently on (treated as stable state) */
 } LED_STATE_e;
 

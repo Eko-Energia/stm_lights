@@ -87,7 +87,7 @@ void APP_InterpretFrames(void)
 		const bool blinkOn = (leftTurn && boardIsLeft)
 		                     || emergency
 		                     || (rightTurn && !boardIsLeft);
-		LED_ChangeState(&ledDirection, blinkOn ? 500 : LED_OFF);
+		LED_ChangeState(&ledDirection, blinkOn ? LED_BLINK : LED_OFF);
 
 		bool applyPosition = true;
 		bool wantPosition  = false;
@@ -159,7 +159,7 @@ void APP_InterpretFrames(void)
 		reverseStatus   = false;
 		safeStateStatus = true;
 
-		LED_ChangeState(&ledDirection,       500);
+		LED_ChangeState(&ledDirection,       LED_BLINK);
 		LED_ChangeState(&ledSidePosition,    LED_OFF);
 		if (boardIsLeft)
 		{
