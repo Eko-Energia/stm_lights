@@ -57,6 +57,20 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define position_circles_Pin GPIO_PIN_0
+#define position_circles_GPIO_Port GPIOB
+#define direction_Pin GPIO_PIN_1
+#define direction_GPIO_Port GPIOB
+#define safe_state_Pin GPIO_PIN_8
+#define safe_state_GPIO_Port GPIOA
+#define reverse_Pin GPIO_PIN_15
+#define reverse_GPIO_Port GPIOA
+#define side_stop_Pin GPIO_PIN_3
+#define side_stop_GPIO_Port GPIOB
+#define long_light_Pin GPIO_PIN_4
+#define long_light_GPIO_Port GPIOB
+#define side_position_Pin GPIO_PIN_5
+#define side_position_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 
