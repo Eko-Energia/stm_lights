@@ -23,7 +23,7 @@ static volatile uint8_t dashboardPrndByte;   // frame 993, byte 1
 static volatile bool dashboardLightsDataCheck = false;
 static volatile bool pedalsJtnsWorksDataCheck = false;
 static volatile bool dashboardControlDataCheck = false;
-static volatile bool safeStateDataCheck = false;
+volatile bool safeStateDataCheck = false;
 
 volatile bool brakeStatus = false;
 volatile bool safeStateStatus = false;
@@ -153,7 +153,6 @@ void APP_InterpretFrames(void)
 
 	if (safeStateDataCheck)
 	{
-		safeStateDataCheck = false;
 
 		brakeStatus     = false;
 		reverseStatus   = false;
@@ -192,10 +191,3 @@ void SetCanFilters(void)
 	HAL_CAN_ConfigFilter(&hcan, &filterConfig);
 }
 
-// Weak-symbol override: HAL's default HAL_IncTick doesn't drive the LED_driver's
-// syncTick, so blinking wouldn't advance without this.
-void HAL_IncTick(void)
-{
-	uwTick += uwTickFreq;
-	LED_IncSyncTick();
-}

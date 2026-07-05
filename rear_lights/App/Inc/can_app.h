@@ -33,6 +33,8 @@ extern volatile bool reverseStatus;
 extern volatile bool brakeChangeFlag;
 extern volatile bool reverseChangeFlag;
 
+extern volatile bool safeStateDataCheck;
+
 void APP_InterpretFrames(void);
 void SetCanFilters(void);
 

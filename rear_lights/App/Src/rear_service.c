@@ -83,18 +83,19 @@ static void CheckForSafeState(void)
 {
 	if (safeStateStatus)
 	{
+		safeStateStatus = false;
 		while (true)
 		{
 			LED_Handle(&ledSafeState);
 			LED_Handle(&ledDirection);
 			CAN_HandleScheduled(&hcan, &canBuffer);
-			if (safeStateStatus)
+			if (safeStateDataCheck)
 			{
 				safeStateTimer = HAL_GetTick();
-				safeStateStatus = false;
+				safeStateDataCheck = false;
 				LED_ChangeState(&ledSafeState, LED_ON);
 			}
-			if ((HAL_GetTick() - safeStateTimer > SAFE_STATE_DURATION_MS) && !safeStateStatus)
+			if ((HAL_GetTick() - safeStateTimer > SAFE_STATE_DURATION_MS) && !safeStateDataCheck)
 			{
 				LED_ChangeState(&ledSafeState, LED_OFF);
 				break;
@@ -129,4 +130,12 @@ void RearService(void)
 		ServiceLights();
 		CheckForSafeState();
 	}
+}
+
+// Weak-symbol override: HAL's default HAL_IncTick doesn't drive the LED_driver's
+// syncTick, so blinking wouldn't advance without this.
+void HAL_IncTick(void)
+{
+	uwTick += uwTickFreq;
+	LED_IncSyncTick();
 }
