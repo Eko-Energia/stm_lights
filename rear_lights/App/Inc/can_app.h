@@ -27,7 +27,6 @@
 #define CAN_STD_ID(id) ((uint16_t)((id) << 5))
 
 extern volatile bool brakeStatus;
-extern volatile bool safeStateStatus;
 extern volatile bool reverseStatus;
 
 extern volatile bool brakeChangeFlag;

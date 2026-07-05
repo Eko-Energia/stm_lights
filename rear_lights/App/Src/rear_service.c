@@ -81,9 +81,8 @@ static void ServiceLights(void)
 // direction blink need to keep ticking. All other outputs are already off.
 static void CheckForSafeState(void)
 {
-	if (safeStateStatus)
+	if (safeStateDataCheck)
 	{
-		safeStateStatus = false;
 		while (true)
 		{
 			LED_Handle(&ledSafeState);

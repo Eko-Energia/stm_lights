@@ -26,7 +26,6 @@ static volatile bool dashboardControlDataCheck = false;
 volatile bool safeStateDataCheck = false;
 
 volatile bool brakeStatus = false;
-volatile bool safeStateStatus = false;
 volatile bool reverseStatus = false;
 
 volatile bool brakeChangeFlag = false;
@@ -156,7 +155,6 @@ void APP_InterpretFrames(void)
 
 		brakeStatus     = false;
 		reverseStatus   = false;
-		safeStateStatus = true;
 
 		LED_ChangeState(&ledDirection,       LED_BLINK);
 		LED_ChangeState(&ledSidePosition,    LED_OFF);
