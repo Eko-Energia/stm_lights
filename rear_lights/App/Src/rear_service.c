@@ -87,6 +87,7 @@ static void CheckForSafeState(void)
 		{
 			LED_Handle(&ledSafeState);
 			LED_Handle(&ledDirection);
+			CAN_HandleScheduled(&hcan, &canBuffer);
 			if (safeStateStatus)
 			{
 				safeStateTimer = HAL_GetTick();

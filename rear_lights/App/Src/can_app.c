@@ -10,17 +10,15 @@
 #include "can_driver.h"
 #include "led_driver.h"
 #include "main.h"
-#include <string.h>
 #include <stdbool.h>
 
 extern CAN_HandleTypeDef hcan;
 
 static CAN_RxHeaderTypeDef CAN_currentMessageHeader;
 
-static uint8_t canDashboardLightsData[CAN_MAX_DLC];
-static uint8_t canPedalsJtnsWorksData[CAN_MAX_DLC];
-static uint8_t canDashboardControlData[CAN_MAX_DLC];
-static uint8_t canSafeStateData[CAN_MAX_DLC];
+static volatile uint8_t dashboardLightsByte; // frame 994, byte 0
+static volatile uint8_t pedalsBrakeHallByte; // frame 65, byte BREAKS_HALL_INTPOS
+static volatile uint8_t dashboardPrndByte;   // frame 993, byte 1
 
 static volatile bool dashboardLightsDataCheck = false;
 static volatile bool pedalsJtnsWorksDataCheck = false;
@@ -38,27 +36,29 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 {
 	uint8_t tempData[CAN_MAX_DLC];
 
-	HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &CAN_currentMessageHeader, tempData);
+	if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &CAN_currentMessageHeader, tempData) != HAL_OK)
+	{
+		return;
+	}
 
 	switch (CAN_currentMessageHeader.StdId)
 	{
 		case DASHBOARD_LIGHTS_FRAME_ID:
-			memcpy(canDashboardLightsData, tempData, CAN_MAX_DLC);
+			dashboardLightsByte = tempData[0];
 			dashboardLightsDataCheck = true;
 			break;
 
 		case PEDALS_JTNS_WORKS_FRAME_ID:
-			memcpy(canPedalsJtnsWorksData, tempData, CAN_MAX_DLC);
+			pedalsBrakeHallByte = tempData[BREAKS_HALL_INTPOS];
 			pedalsJtnsWorksDataCheck = true;
 			break;
 
 		case DASHBOARD_CONTROL_FRAME_ID:
-			memcpy(canDashboardControlData, tempData, CAN_MAX_DLC);
+			dashboardPrndByte = tempData[1];
 			dashboardControlDataCheck = true;
 			break;
 
 		case SAFE_STATE_FRAME_ID:
-			memcpy(canSafeStateData, tempData, CAN_MAX_DLC);
 			safeStateDataCheck = true;
 			break;
 	}
@@ -75,7 +75,7 @@ void APP_InterpretFrames(void)
 		//   bits 3-4 TurnSig_Left (0 OFF, 1 ONCE, 2 ON)
 		//   bits 5-6 TurnSig_Right
 		//   bit  7   Emergency
-		const uint8_t byte        = canDashboardLightsData[0];
+		const uint8_t byte        = dashboardLightsByte;
 		const uint8_t headlights  = byte & 0x7U;
 		const uint8_t leftSignal  = (byte >> 3) & 0x3U;
 		const uint8_t rightSignal = (byte >> 5) & 0x3U;
@@ -128,7 +128,7 @@ void APP_InterpretFrames(void)
 	{
 		pedalsJtnsWorksDataCheck = false;
 
-		const bool wantBrake = canPedalsJtnsWorksData[BREAKS_HALL_INTPOS] > BREAK_HALL_EPS;
+		const bool wantBrake = pedalsBrakeHallByte > BREAK_HALL_EPS;
 		if (wantBrake != brakeStatus)
 		{
 			brakeStatus = wantBrake;
@@ -141,7 +141,7 @@ void APP_InterpretFrames(void)
 		dashboardControlDataCheck = false;
 
 		// PRND: bit 14, length 2 -> high 2 bits of byte 1.
-		const uint8_t prnd = (canDashboardControlData[1] >> 6) & 0x3U;
+		const uint8_t prnd = (dashboardPrndByte >> 6) & 0x3U;
 
 		const bool wantReverse = (prnd == PRND_REVERSE_VALUE);
 		if (wantReverse != reverseStatus)
