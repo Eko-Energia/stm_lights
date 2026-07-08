@@ -23,10 +23,13 @@ static volatile uint8_t dashboardPrndByte;   // frame 993, byte 1
 static volatile bool dashboardLightsDataCheck = false;
 static volatile bool pedalsJtnsWorksDataCheck = false;
 static volatile bool dashboardControlDataCheck = false;
-volatile bool safeStateDataCheck = false;
+static volatile bool safeStateDataCheck = false;
 
 volatile bool brakeStatus = false;
 volatile bool reverseStatus = false;
+
+static bool safeStateActive = false;
+static uint32_t safeStateTimer = 0;
 
 volatile bool brakeChangeFlag = false;
 volatile bool reverseChangeFlag = false;
@@ -65,6 +68,39 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 
 void APP_InterpretFrames(void)
 {
+	if (safeStateDataCheck)
+	{
+		safeStateDataCheck = false;
+		safeStateTimer = HAL_GetTick();
+		if (!safeStateActive)
+		{
+			safeStateActive = true;
+			brakeStatus   = false;
+			reverseStatus = false;
+			brakeChangeFlag   = true;
+			reverseChangeFlag = true;
+
+			LED_ChangeState(&ledSafeState,       LED_ON);
+			LED_ChangeState(&ledDirection,       LED_BLINK);
+			LED_ChangeState(&ledSidePosition,    LED_OFF);
+			if (boardIsLeft)
+			{
+				LED_ChangeState(&ledLongLight, LED_OFF);
+			}
+			LED_ChangeState(&ledPositionCircles, LED_OFF);
+		}
+	}
+	else if (safeStateActive && (HAL_GetTick() - safeStateTimer > SAFE_STATE_DURATION_MS))
+	{
+		safeStateActive = false;
+		LED_ChangeState(&ledSafeState, LED_OFF);
+	}
+
+	if (safeStateActive)
+	{
+		return;
+	}
+
 	if (dashboardLightsDataCheck)
 	{
 		dashboardLightsDataCheck = false;
@@ -150,23 +186,6 @@ void APP_InterpretFrames(void)
 		}
 	}
 
-	if (safeStateDataCheck)
-	{
-
-		brakeStatus     = false;
-		reverseStatus   = false;
-
-		LED_ChangeState(&ledDirection,       LED_BLINK);
-		LED_ChangeState(&ledSidePosition,    LED_OFF);
-		if (boardIsLeft)
-		{
-			LED_ChangeState(&ledLongLight, LED_OFF);
-		}
-		LED_ChangeState(&ledPositionCircles, LED_OFF);
-
-		brakeChangeFlag   = true;
-		reverseChangeFlag = true;
-	}
 }
 
 void SetCanFilters(void)

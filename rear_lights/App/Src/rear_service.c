@@ -20,7 +20,6 @@ const bool boardIsLeft = true;
 static EH_HandleTypeDef errorHandler;
 static struct CAN_scheduledMsgList canBuffer;
 static struct CAN_scheduledMsg statusFrame;
-static uint32_t safeStateTimer = 0;
 
 struct LED ledReverse         = { LED_OFF, reverse_GPIO_Port,          reverse_Pin };
 struct LED ledSideStop        = { LED_OFF, side_stop_GPIO_Port,        side_stop_Pin };
@@ -77,32 +76,6 @@ static void ServiceLights(void)
 	LED_Handle(&ledLongLight);
 }
 
-// During the safe-state hold, only the safe-state indicator and the emergency
-// direction blink need to keep ticking. All other outputs are already off.
-static void CheckForSafeState(void)
-{
-	if (safeStateDataCheck)
-	{
-		while (true)
-		{
-			LED_Handle(&ledSafeState);
-			LED_Handle(&ledDirection);
-			CAN_HandleScheduled(&hcan, &canBuffer);
-			if (safeStateDataCheck)
-			{
-				safeStateTimer = HAL_GetTick();
-				safeStateDataCheck = false;
-				LED_ChangeState(&ledSafeState, LED_ON);
-			}
-			if ((HAL_GetTick() - safeStateTimer > SAFE_STATE_DURATION_MS) && !safeStateDataCheck)
-			{
-				LED_ChangeState(&ledSafeState, LED_OFF);
-				break;
-			}
-		}
-	}
-}
-
 static void InitService(void)
 {
 	const uint16_t nodeId    = boardIsLeft ? NODE_FRAME_ID_LB   : NODE_FRAME_ID_RB;
@@ -127,7 +100,6 @@ void RearService(void)
 		CAN_HandleScheduled(&hcan, &canBuffer);
 		APP_InterpretFrames();
 		ServiceLights();
-		CheckForSafeState();
 	}
 }
 
