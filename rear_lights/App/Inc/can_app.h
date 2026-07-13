@@ -9,7 +9,6 @@
 #define CAN_APP_H
 
 #include "main.h"
-#include <stdbool.h>
 
 // Frame IDs come from CAN_DB.dbc.
 #define DASHBOARD_LIGHTS_FRAME_ID (994)
@@ -26,13 +25,24 @@
 
 #define CAN_STD_ID(id) ((uint16_t)((id) << 5))
 
-extern volatile bool brakeStatus;
-extern volatile bool reverseStatus;
+extern volatile uint8_t brakeStatus;
+extern volatile uint8_t reverseStatus;
 
-extern volatile bool brakeChangeFlag;
-extern volatile bool reverseChangeFlag;
+extern volatile uint8_t brakeChangeFlag;
+extern volatile uint8_t reverseChangeFlag;
 
+// Set by the RX ISR on a SafeState_NODE frame, consumed by rear_service.
+extern volatile uint8_t safeStateDataCheck;
+
+/**
+  * @brief Applies pending CAN frames to the light outputs and shared statuses
+  *        (does nothing while safe state is active).
+  */
 void APP_InterpretFrames(void);
+
+/**
+  * @brief Configures the bxCAN acceptance filters for the four consumed frame IDs.
+  */
 void SetCanFilters(void);
 
 #endif // CAN_APP_H

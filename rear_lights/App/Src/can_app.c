@@ -10,30 +10,33 @@
 #include "can_driver.h"
 #include "led_driver.h"
 #include "main.h"
-#include <stdbool.h>
 
 extern CAN_HandleTypeDef hcan;
 
 static CAN_RxHeaderTypeDef CAN_currentMessageHeader;
 
+// Only the single byte each frame's logic consumes is latched; byte accesses
+// are atomic on Cortex-M, so ISR <-> main-loop sharing cannot tear.
 static volatile uint8_t dashboardLightsByte; // frame 994, byte 0
 static volatile uint8_t pedalsBrakeHallByte; // frame 65, byte BREAKS_HALL_INTPOS
 static volatile uint8_t dashboardPrndByte;   // frame 993, byte 1
 
-static volatile bool dashboardLightsDataCheck = false;
-static volatile bool pedalsJtnsWorksDataCheck = false;
-static volatile bool dashboardControlDataCheck = false;
-static volatile bool safeStateDataCheck = false;
+static volatile uint8_t dashboardLightsDataCheck = 0U;
+static volatile uint8_t pedalsJtnsWorksDataCheck = 0U;
+static volatile uint8_t dashboardControlDataCheck = 0U;
+volatile uint8_t safeStateDataCheck = 0U;
 
-volatile bool brakeStatus = false;
-volatile bool reverseStatus = false;
+volatile uint8_t brakeStatus = 0U;
+volatile uint8_t reverseStatus = 0U;
 
-static bool safeStateActive = false;
-static uint32_t safeStateTimer = 0;
+volatile uint8_t brakeChangeFlag = 0U;
+volatile uint8_t reverseChangeFlag = 0U;
 
-volatile bool brakeChangeFlag = false;
-volatile bool reverseChangeFlag = false;
-
+/**
+  * @brief RX FIFO0 interrupt callback: latches the consumed payload byte and
+  *        raises the pending flag of the received frame.
+  * @param hcan   CAN handle that raised the interrupt.
+  */
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 {
 	uint8_t tempData[CAN_MAX_DLC];
@@ -47,55 +50,34 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 	{
 		case DASHBOARD_LIGHTS_FRAME_ID:
 			dashboardLightsByte = tempData[0];
-			dashboardLightsDataCheck = true;
+			dashboardLightsDataCheck = 1U;
 			break;
 
 		case PEDALS_JTNS_WORKS_FRAME_ID:
 			pedalsBrakeHallByte = tempData[BREAKS_HALL_INTPOS];
-			pedalsJtnsWorksDataCheck = true;
+			pedalsJtnsWorksDataCheck = 1U;
 			break;
 
 		case DASHBOARD_CONTROL_FRAME_ID:
 			dashboardPrndByte = tempData[1];
-			dashboardControlDataCheck = true;
+			dashboardControlDataCheck = 1U;
 			break;
 
 		case SAFE_STATE_FRAME_ID:
-			safeStateDataCheck = true;
+			safeStateDataCheck = 1U;
 			break;
 	}
 }
 
+/**
+  * @brief Applies pending CAN frames to the light outputs and shared statuses.
+  *
+  * Does nothing while safe state is active: the pending flags and latched
+  * payload bytes are left untouched, so the newest state is applied on the
+  * first call after safe state ends.
+  */
 void APP_InterpretFrames(void)
 {
-	if (safeStateDataCheck)
-	{
-		safeStateDataCheck = false;
-		safeStateTimer = HAL_GetTick();
-		if (!safeStateActive)
-		{
-			safeStateActive = true;
-			brakeStatus   = false;
-			reverseStatus = false;
-			brakeChangeFlag   = true;
-			reverseChangeFlag = true;
-
-			LED_ChangeState(&ledSafeState,       LED_ON);
-			LED_ChangeState(&ledDirection,       LED_BLINK);
-			LED_ChangeState(&ledSidePosition,    LED_OFF);
-			if (boardIsLeft)
-			{
-				LED_ChangeState(&ledLongLight, LED_OFF);
-			}
-			LED_ChangeState(&ledPositionCircles, LED_OFF);
-		}
-	}
-	else if (safeStateActive && (HAL_GetTick() - safeStateTimer > SAFE_STATE_DURATION_MS))
-	{
-		safeStateActive = false;
-		LED_ChangeState(&ledSafeState, LED_OFF);
-	}
-
 	if (safeStateActive)
 	{
 		return;
@@ -103,7 +85,7 @@ void APP_InterpretFrames(void)
 
 	if (dashboardLightsDataCheck)
 	{
-		dashboardLightsDataCheck = false;
+		dashboardLightsDataCheck = 0U;
 
 		// Dashboard_Lights (994) byte 0 layout, per CAN_DB.dbc:
 		//   bits 0-2 Headlights   (0 OFF, 1 AUTO, 2 DAY, 3 NIGHT, 4 HIGHBEAMS)
@@ -115,30 +97,30 @@ void APP_InterpretFrames(void)
 		const uint8_t leftSignal  = (byte >> 3) & 0x3U;
 		const uint8_t rightSignal = (byte >> 5) & 0x3U;
 
-		const bool leftTurn  = (leftSignal  != 0U);
-		const bool rightTurn = (rightSignal != 0U);
-		const bool emergency = ((byte >> 7) & 0x1U) != 0U;
+		const uint8_t leftTurn  = (leftSignal  != 0U);
+		const uint8_t rightTurn = (rightSignal != 0U);
+		const uint8_t emergency = ((byte >> 7) & 0x1U) != 0U;
 
-		const bool blinkOn = (leftTurn && boardIsLeft)
+		const uint8_t blinkOn = (leftTurn && boardIsLeft)
 		                     || emergency
 		                     || (rightTurn && !boardIsLeft);
 		LED_ChangeState(&ledDirection, blinkOn ? LED_BLINK : LED_OFF);
 
-		bool applyPosition = true;
-		bool wantPosition  = false;
+		uint8_t applyPosition = 1U;
+		uint8_t wantPosition  = 0U;
 		switch (headlights)
 		{
 			case 0U:
-				wantPosition = false;
+				wantPosition = 0U;
 				break;
 			case 2U:
 			case 3U:
 			case 4U:
-				wantPosition = true;
+				wantPosition = 1U;
 				break;
 			default:
 				// AUTO (1) or reserved: leave position state untouched.
-				applyPosition = false;
+				applyPosition = 0U;
 				break;
 		}
 
@@ -152,42 +134,44 @@ void APP_InterpretFrames(void)
 			}
 		}
 
-		// Read position back from the LED itself so AUTO (which skips the block
-		// above) still gets the right circles output when blinkOn changes.
-		const bool positionOn = (ledSidePosition.state == LED_ON);
+		// Position is read back from the LED itself so AUTO (which skips the
+		// block above) still yields the right circles output when blinkOn changes.
+		const uint8_t positionOn = (ledSidePosition.state == LED_ON);
 		LED_ChangeState(&ledPositionCircles,
 		                blinkOn ? LED_OFF : (positionOn ? LED_ON : LED_OFF));
 	}
 
 	if (pedalsJtnsWorksDataCheck)
 	{
-		pedalsJtnsWorksDataCheck = false;
+		pedalsJtnsWorksDataCheck = 0U;
 
-		const bool wantBrake = pedalsBrakeHallByte > BREAK_HALL_EPS;
+		const uint8_t wantBrake = pedalsBrakeHallByte > BREAK_HALL_EPS;
 		if (wantBrake != brakeStatus)
 		{
 			brakeStatus = wantBrake;
-			brakeChangeFlag = true;
+			brakeChangeFlag = 1U;
 		}
 	}
 
 	if (dashboardControlDataCheck)
 	{
-		dashboardControlDataCheck = false;
+		dashboardControlDataCheck = 0U;
 
 		// PRND: bit 14, length 2 -> high 2 bits of byte 1.
 		const uint8_t prnd = (dashboardPrndByte >> 6) & 0x3U;
 
-		const bool wantReverse = (prnd == PRND_REVERSE_VALUE);
+		const uint8_t wantReverse = (prnd == PRND_REVERSE_VALUE);
 		if (wantReverse != reverseStatus)
 		{
 			reverseStatus = wantReverse;
-			reverseChangeFlag = true;
+			reverseChangeFlag = 1U;
 		}
 	}
-
 }
 
+/**
+  * @brief Configures the bxCAN acceptance filters for the four consumed frame IDs.
+  */
 void SetCanFilters(void)
 {
 	CAN_FilterTypeDef filterConfig;
@@ -207,4 +191,3 @@ void SetCanFilters(void)
 	filterConfig.FilterIdLow  = CAN_STD_ID(SAFE_STATE_FRAME_ID);
 	HAL_CAN_ConfigFilter(&hcan, &filterConfig);
 }
-
