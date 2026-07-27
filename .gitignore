@@ -1,0 +1,65 @@
+# =============================================================================
+# .gitignore for STM32CubeIDE project (lights_driver)
+# Keeps source, project descriptors and the .ioc; drops build output and IDE noise.
+# =============================================================================
+
+# ---- STM32CubeIDE / CDT build output ----
+Debug/
+Release/
+RelWithDebInfo/
+build/
+*/Debug/
+*/Release/
+
+# ---- Compiled / generated artifacts ----
+*.o
+*.obj
+*.a
+*.lib
+*.elf
+*.bin
+*.hex
+*.lss
+*.list
+*.map
+*.su
+*.cyclo
+*.d
+*.dep
+*.srec
+*.s19
+*.s37
+*.ld.bak
+
+# ---- Eclipse / IDE workspace files ----
+.metadata/
+.settings/
+.cproject.bak
+.project.bak
+*.launch.bak
+RemoteSystemsTempFiles/
+
+# ---- CubeMX / editor backups & lock files ----
+*.bak
+*.bak.*
+*.orig
+*~
+~$*
+.#*
+\#*\#
+
+# ---- Local-only debug / dev artifacts ----
+*.log
+*.tmp
+*.swp
+
+# ---- OS junk ----
+Thumbs.db
+ehthumbs.db
+.DS_Store
+desktop.ini
+
+# ---- Secrets / local env (just in case) ----
+.env
+.env.local
+*.local
