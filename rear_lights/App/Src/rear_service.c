@@ -14,7 +14,7 @@
 
 extern CAN_HandleTypeDef hcan;
 
-const uint8_t boardIsLeft = 1U;
+const uint8_t boardIsLeft = 0U;
 
 static EH_HandleTypeDef errorHandler;
 static struct CAN_scheduledMsgList canBuffer;
@@ -151,16 +151,25 @@ static void InitService(void)
   */
 void RearService(void)
 {
+	struct LED LED_GREEN = {LED_OFF, LED_GREEN_GPIO_Port, LED_GREEN_Pin};
+	struct LED LED_RED = {LED_OFF, LED_RED_GPIO_Port, LED_RED_Pin};
+
 	CAN_Init(&hcan);
 	SetCanFilters();
 	InitService();
+	LED_ChangeState(&LED_GREEN, LED_BLINK);
 	while (1U)
 	{
 		CAN_HandleScheduled(&hcan, &canBuffer);
 		HandleSafeState();
 		APP_InterpretFrames();
 		ServiceLights();
+
+		LED_Handle(&LED_GREEN);
+		LED_Handle(&LED_RED);
 	}
+
+
 }
 
 /**
