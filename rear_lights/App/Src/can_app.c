@@ -20,10 +20,13 @@ static CAN_RxHeaderTypeDef CAN_currentMessageHeader;
 static volatile uint8_t dashboardLightsByte; // frame 994, byte 0
 static volatile uint8_t pedalsBrakeHallByte; // frame 65, byte BREAKS_HALL_INTPOS
 static volatile uint8_t dashboardPrndByte;   // frame 993, byte 1
+// SafeState_SyncTick (30): SyncTick 0|32@1+ little-endian ms
+static volatile uint32_t safeStateSyncTick;
 
 static volatile uint8_t dashboardLightsDataCheck = 0U;
 static volatile uint8_t pedalsJtnsWorksDataCheck = 0U;
 static volatile uint8_t dashboardControlDataCheck = 0U;
+static volatile uint8_t safeStateSyncTickDataCheck = 0U;
 volatile uint8_t safeStateDataCheck = 0U;
 
 volatile uint8_t brakeStatus = 0U;
@@ -66,6 +69,27 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 		case SAFE_STATE_FRAME_ID:
 			safeStateDataCheck = 1U;
 			break;
+
+		case SAFE_STATE_SYNC_TICK_FRAME_ID:
+			// SyncTick : 0|32@1+ (1,0) — Intel/little-endian, bytes 0..3
+			safeStateSyncTick = (uint32_t)tempData[0]
+			                  | ((uint32_t)tempData[1] << 8)
+			                  | ((uint32_t)tempData[2] << 16)
+			                  | ((uint32_t)tempData[3] << 24);
+			safeStateSyncTickDataCheck = 1U;
+			break;
+	}
+}
+
+/**
+  * @brief Applies a pending SafeState_SyncTick frame to the LED sync counter.
+  */
+static void UpdateLedSyncTick(void)
+{
+	if (safeStateSyncTickDataCheck)
+	{
+		safeStateSyncTickDataCheck = 0U;
+		LED_SetSyncTick(safeStateSyncTick);
 	}
 }
 
@@ -78,6 +102,9 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
   */
 void APP_InterpretFrames(void)
 {
+	// Keep blink phase aligned even while safe state holds light outputs.
+	UpdateLedSyncTick();
+
 	if (safeStateActive)
 	{
 		return;
@@ -170,7 +197,7 @@ void APP_InterpretFrames(void)
 }
 
 /**
-  * @brief Configures the bxCAN acceptance filters for the four consumed frame IDs.
+  * @brief Configures the bxCAN acceptance filters for the consumed frame IDs.
   */
 void SetCanFilters(void)
 {
@@ -189,5 +216,10 @@ void SetCanFilters(void)
 	filterConfig.FilterBank = 1;
 	filterConfig.FilterIdHigh = CAN_STD_ID(PEDALS_JTNS_WORKS_FRAME_ID);
 	filterConfig.FilterIdLow  = CAN_STD_ID(SAFE_STATE_FRAME_ID);
+	HAL_CAN_ConfigFilter(&hcan, &filterConfig);
+
+	filterConfig.FilterBank = 2;
+	filterConfig.FilterIdHigh = CAN_STD_ID(SAFE_STATE_SYNC_TICK_FRAME_ID);
+	filterConfig.FilterIdLow  = CAN_STD_ID(SAFE_STATE_SYNC_TICK_FRAME_ID);
 	HAL_CAN_ConfigFilter(&hcan, &filterConfig);
 }
