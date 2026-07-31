@@ -15,6 +15,7 @@
 #define DASHBOARD_CONTROL_FRAME_ID (993)
 #define PEDALS_JTNS_WORKS_FRAME_ID (65)
 #define SAFE_STATE_FRAME_ID (1)
+#define SAFE_STATE_SYNC_TICK_FRAME_ID (30)
 
 #define BREAKS_LINEAR_INTPOS (1)
 #define BREAKS_HALL_INTPOS (2)
@@ -41,7 +42,7 @@ extern volatile uint8_t safeStateDataCheck;
 void APP_InterpretFrames(void);
 
 /**
-  * @brief Configures the bxCAN acceptance filters for the four consumed frame IDs.
+  * @brief Configures the bxCAN acceptance filters for the consumed frame IDs.
   */
 void SetCanFilters(void);
 
