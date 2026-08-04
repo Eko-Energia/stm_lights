@@ -6,7 +6,7 @@
   */
 
 #include "can_app.h"
-#include "rear_service.h"
+#include "front_service.h"
 #include "can_driver.h"
 #include "led_driver.h"
 #include "main.h"
@@ -18,23 +18,12 @@ static CAN_RxHeaderTypeDef CAN_currentMessageHeader;
 // Only the single byte each frame's logic consumes is latched; byte accesses
 // are atomic on Cortex-M, so ISR <-> main-loop sharing cannot tear.
 static volatile uint8_t dashboardLightsByte; // frame 994, byte 0
-static volatile uint8_t pedalsBrakeHallByte; // frame 65, byte BREAKS_HALL_INTPOS
-static volatile uint8_t pedalsBrakeLinearByte; // frame 65, byte BREAKS_LINEAR_INTPOS
-static volatile uint8_t dashboardPrndByte;   // frame 993, byte 1
 // SafeState_SyncTick (30): SyncTick 0|32@1+ little-endian ms
 static volatile uint32_t safeStateSyncTick;
 
 static volatile uint8_t dashboardLightsDataCheck = 0U;
-static volatile uint8_t pedalsJtnsWorksDataCheck = 0U;
-static volatile uint8_t dashboardControlDataCheck = 0U;
 static volatile uint8_t safeStateSyncTickDataCheck = 0U;
 volatile uint8_t safeStateDataCheck = 0U;
-
-volatile uint8_t brakeStatus = 0U;
-volatile uint8_t reverseStatus = 0U;
-
-volatile uint8_t brakeChangeFlag = 0U;
-volatile uint8_t reverseChangeFlag = 0U;
 
 /**
   * @brief RX FIFO0 interrupt callback: latches the consumed payload byte and
@@ -55,17 +44,6 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 		case DASHBOARD_LIGHTS_FRAME_ID:
 			dashboardLightsByte = tempData[0];
 			dashboardLightsDataCheck = 1U;
-			break;
-
-		case PEDALS_JTNS_WORKS_FRAME_ID:
-			pedalsBrakeHallByte = tempData[BREAKS_HALL_INTPOS];
-			pedalsBrakeLinearByte = tempData[BREAKS_LINEAR_INTPOS];
-			pedalsJtnsWorksDataCheck = 1U;
-			break;
-
-		case DASHBOARD_CONTROL_FRAME_ID:
-			dashboardPrndByte = tempData[1];
-			dashboardControlDataCheck = 1U;
 			break;
 
 		case SAFE_STATE_FRAME_ID:
@@ -96,7 +74,7 @@ static void UpdateLedSyncTick(void)
 }
 
 /**
-  * @brief Applies pending CAN frames to the light outputs and shared statuses.
+  * @brief Applies pending CAN frames to the light outputs.
   *
   * Does nothing while safe state is active: the pending flags and latched
   * payload bytes are left untouched, so the newest state is applied on the
@@ -135,69 +113,45 @@ void APP_InterpretFrames(void)
 		const uint8_t blinkOn = (leftTurn && boardIsLeft)
 		                     || emergency
 		                     || (rightTurn && !boardIsLeft);
-		LED_ChangeState(&ledDirection, blinkOn ? LED_BLINK : LED_OFF);
+		LED_ChangeState(&ledIndicator,     blinkOn ? LED_BLINK : LED_OFF);
+		LED_ChangeState(&ledSideIndicator, blinkOn ? LED_BLINK : LED_OFF);
 
-		// The rear board has no beam lamps, so every non-OFF headlight mode
-		// resolves to the same thing: position lamps on.
-		uint8_t applyPosition = 1U;
-		uint8_t wantPosition  = 0U;
+		// Headlight mode selects one beam; position lamps stay lit in every
+		// mode except OFF.
+		uint8_t applyBeams   = 1U;
+		uint8_t wantPosition = 0U;
+		uint8_t wantDayLight = 0U;
+		uint8_t wantLowBeam  = 0U;
+		uint8_t wantHighBeam = 0U;
 		switch (headlights)
 		{
-			case 0U:
-				wantPosition = 0U;
+			case 0U: /* OFF */
 				break;
-			case 2U:
-			case 3U:
-			case 4U:
+			case 2U: /* DAY */
 				wantPosition = 1U;
+				wantDayLight = 1U;
+				break;
+			case 3U: /* NIGHT */
+				wantPosition = 1U;
+				wantLowBeam  = 1U;
+				break;
+			case 4U: /* HIGHBEAMS */
+				wantPosition = 1U;
+				wantHighBeam = 1U;
 				break;
 			default:
-				// AUTO (1) or reserved: leave position state untouched.
-				applyPosition = 0U;
+				// AUTO (1) or reserved: leave the lamp states untouched.
+				applyBeams = 0U;
 				break;
 		}
 
-		if (applyPosition)
+		if (applyBeams)
 		{
-			const LED_STATE_e s = wantPosition ? LED_ON : LED_OFF;
-			LED_ChangeState(&ledSidePosition, s);
-			if (boardIsLeft)
-			{
-				LED_ChangeState(&ledLongLight, s);
-			}
-		}
-
-		// Position is read back from the LED itself so AUTO (which skips the
-		// block above) still yields the right circles output when blinkOn changes.
-		const uint8_t positionOn = (ledSidePosition.state == LED_ON);
-		LED_ChangeState(&ledPositionCircles,
-		                blinkOn ? LED_OFF : (positionOn ? LED_ON : LED_OFF));
-	}
-
-	if (pedalsJtnsWorksDataCheck)
-	{
-		pedalsJtnsWorksDataCheck = 0U;
-
-		const uint8_t wantBrake = (pedalsBrakeHallByte > BREAK_HALL_EPS) || (pedalsBrakeLinearByte > BREAK_LINEAR_EPS);
-		if (wantBrake != brakeStatus)
-		{
-			brakeStatus = wantBrake;
-			brakeChangeFlag = 1U;
-		}
-	}
-
-	if (dashboardControlDataCheck)
-	{
-		dashboardControlDataCheck = 0U;
-
-		// PRND: bit 14, length 2 -> high 2 bits of byte 1.
-		const uint8_t prnd = (dashboardPrndByte >> 6) & 0x3U;
-
-		const uint8_t wantReverse = (prnd == PRND_REVERSE_VALUE);
-		if (wantReverse != reverseStatus)
-		{
-			reverseStatus = wantReverse;
-			reverseChangeFlag = 1U;
+			LED_ChangeState(&ledPosition,  wantPosition ? LED_ON : LED_OFF);
+			LED_ChangeState(&ledDayLight1, wantDayLight ? LED_ON : LED_OFF);
+			LED_ChangeState(&ledDayLight2, wantDayLight ? LED_ON : LED_OFF);
+			LED_ChangeState(&ledLowBeam,   wantLowBeam  ? LED_ON : LED_OFF);
+			LED_ChangeState(&ledHighBeam,  wantHighBeam ? LED_ON : LED_OFF);
 		}
 	}
 }
@@ -219,14 +173,7 @@ void SetCanFilters(void)
 
 	filterConfig.FilterBank = 0;
 	filterConfig.FilterIdHigh     = CAN_STD_ID(DASHBOARD_LIGHTS_FRAME_ID);
-	filterConfig.FilterIdLow      = CAN_STD_ID(DASHBOARD_CONTROL_FRAME_ID);
-	filterConfig.FilterMaskIdHigh = CAN_STD_ID(PEDALS_JTNS_WORKS_FRAME_ID);
-	filterConfig.FilterMaskIdLow  = CAN_STD_ID(SAFE_STATE_FRAME_ID);
-	HAL_CAN_ConfigFilter(&hcan, &filterConfig);
-
-	filterConfig.FilterBank = 1;
-	filterConfig.FilterIdHigh     = CAN_STD_ID(SAFE_STATE_SYNC_TICK_FRAME_ID);
-	filterConfig.FilterIdLow      = CAN_STD_ID(SAFE_STATE_SYNC_TICK_FRAME_ID);
+	filterConfig.FilterIdLow      = CAN_STD_ID(SAFE_STATE_FRAME_ID);
 	filterConfig.FilterMaskIdHigh = CAN_STD_ID(SAFE_STATE_SYNC_TICK_FRAME_ID);
 	filterConfig.FilterMaskIdLow  = CAN_STD_ID(SAFE_STATE_SYNC_TICK_FRAME_ID);
 	HAL_CAN_ConfigFilter(&hcan, &filterConfig);
