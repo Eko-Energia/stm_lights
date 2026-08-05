@@ -14,7 +14,7 @@
 
 extern CAN_HandleTypeDef hcan;
 
-const uint8_t boardIsLeft = 0U;
+const uint8_t boardIsLeft = 1U;
 
 static EH_HandleTypeDef errorHandler;
 static struct CAN_scheduledMsgList canBuffer;
@@ -125,6 +125,7 @@ static void HandleSafeState(void)
 	{
 		safeStateActive = 0U;
 		LED_ChangeState(&ledSafeState, LED_OFF);
+		LED_ChangeState(&ledDirection, LED_OFF);
 	}
 }
 
