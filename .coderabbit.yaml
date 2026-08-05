@@ -1,0 +1,80 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+
+# CodeRabbit config for STM32CubeIDE firmware (front_lights / rear_lights).
+# Reviews focus on application code under App/; CubeMX/HAL/CMSIS and build artifacts are excluded.
+
+language: en-US
+early_access: false
+reviews:
+  profile: chill
+  path_filters:
+    # STM32CubeMX / CubeIDE generated & vendored
+    - '!**/Drivers/**'
+    - '!**/Core/**'
+    - '!**/Middlewares/**'
+    - '!**/Startup/**'
+    - '!**/*.ioc'
+    - '!**/*.ld'
+    - '!**/.cproject'
+    - '!**/.project'
+    - '!**/.mxproject'
+    - '!**/.settings/**'
+    - '!**/*.launch'
+
+    # Build outputs (CubeIDE Debug/Release)
+    - '!**/Debug/**'
+    - '!**/Release/**'
+    - '!**/RelWithDebInfo/**'
+    - '!**/build/**'
+    - '!**/*.o'
+    - '!**/*.obj'
+    - '!**/*.a'
+    - '!**/*.elf'
+    - '!**/*.bin'
+    - '!**/*.hex'
+    - '!**/*.map'
+    - '!**/*.list'
+    - '!**/*.lss'
+    - '!**/*.su'
+    - '!**/*.d'
+    - '!**/*.dep'
+    - '!**/*.srec'
+    - '!**/*.s19'
+
+    # IDE / editor noise
+    - '!**/.metadata/**'
+    - '!**/.vscode/**'
+    - '!**/.idea/**'
+    - '!**/.cursor/**'
+    - '!**/.agents/**'
+    - '!**/.agent/**'
+    - '!**/.claude/**'
+    - '!**/.DS_Store'
+    - '!**/*.log'
+    - '!**/.env*'
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+  path_instructions:
+    - path: '**/App/**/*.{c,h}'
+      instructions: |
+        Review as bare-metal STM32 embedded C (no RTOS assumed unless present).
+        Focus on: ISR safety (shared state with volatile / critical sections), CAN and peripheral
+        error handling, blocking loops in cooperative main loops, magic numbers vs named constants,
+        correct HAL usage from App code, and consistency of board/protocol definitions.
+        Do not suggest refactoring CubeMX-generated Core/ or Drivers/ code — those are out of scope.
+        Prefer MISRA-friendly patterns where practical without being pedantic.
+  auto_review:
+    enabled: true
+    ignore_title_keywords:
+      - WIP
+      - DO NOT MERGE
+      - DRAFT
+    drafts: true
+  pre_merge_checks:
+    docstrings:
+      mode: off
+chat:
+  auto_reply: true
