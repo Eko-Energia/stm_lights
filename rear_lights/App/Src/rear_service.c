@@ -14,16 +14,19 @@
 
 extern CAN_HandleTypeDef hcan;
 
+// Build target: 1U = left-back board, 0U = right-back board.
 const uint8_t boardIsLeft = 1U;
 
 static EH_HandleTypeDef errorHandler;
 static struct CAN_scheduledMsgList canBuffer;
 static struct CAN_scheduledMsg statusFrame;
+// HAL tick captured when safe state was last entered or refreshed.
 static uint32_t safeStateTimer = 0;
 
 uint8_t safeStateActive = 0U;
 
-// long_light carries whole-position on LB and middle-stop on RB.
+// One context per physical output. long_light is wired to a different lamp on
+// each board: whole-position on LB, middle-stop on RB.
 struct LED ledReverse         = { LED_OFF, reverse_GPIO_Port,          reverse_Pin };
 struct LED ledSideStop        = { LED_OFF, side_stop_GPIO_Port,        side_stop_Pin };
 struct LED ledDirection       = { LED_OFF, direction_GPIO_Port,        direction_Pin };
@@ -34,6 +37,10 @@ struct LED ledLongLight       = { LED_OFF, long_light_GPIO_Port,       long_ligh
 
 /**
   * @brief Packs the GPIO level of every light output into one status byte.
+  *
+  * Bit order follows LightsR*_Status in CAN_DB.dbc. Levels are read back from
+  * the pins rather than from the LED states, so the frame reports what the
+  * hardware is actually doing.
   *
   * Registered as the getData callback of the periodic status frame.
   *
