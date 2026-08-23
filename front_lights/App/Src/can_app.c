@@ -137,6 +137,7 @@ void APP_InterpretFrames(void)
 				break;
 			case 4U: /* HIGHBEAMS */
 				wantPosition = 1U;
+				wantLowBeam  = 1U;
 				wantHighBeam = 1U;
 				break;
 			default:
