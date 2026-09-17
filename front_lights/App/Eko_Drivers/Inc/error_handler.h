@@ -37,7 +37,7 @@ extern "C"
 #define HEARTBEAT_ERROR_CODE (0xFFFF)
 
 /** @brief Interval of heartbeat message */
-#define HEARTBEAT_INTERVAL (1000)
+#define HEARTBEAT_INTERVAL (5000)
 
 /** @brief Interval of error message */
 #define ERROR_INTERVAL (300)

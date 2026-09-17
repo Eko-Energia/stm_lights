@@ -130,7 +130,8 @@ static void InitService(void)
 	statusFrame.periodMs     = STATUS_FRAME_PERIOD_MS;
 	statusFrame.getData      = &ReadBoardStatus;
 	statusFrame.lastTick     = 0;
-	CAN_AddScheduledMsg(&statusFrame, &canBuffer);
+	// not needed
+	//CAN_AddScheduledMsg(&statusFrame, &canBuffer);
 }
 
 /**

@@ -71,6 +71,10 @@ void Error_Handler(void);
 #define low_beam_GPIO_Port GPIOB
 #define high_beam_Pin GPIO_PIN_5
 #define high_beam_GPIO_Port GPIOB
+#define LED_GREEN_Pin GPIO_PIN_6
+#define LED_GREEN_GPIO_Port GPIOB
+#define LED_RED_Pin GPIO_PIN_7
+#define LED_RED_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 
