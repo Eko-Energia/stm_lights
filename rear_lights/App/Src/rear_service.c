@@ -15,7 +15,7 @@
 extern CAN_HandleTypeDef hcan;
 
 // Build target: 1U = left-back board, 0U = right-back board.
-const uint8_t boardIsLeft = 1U;
+const uint8_t boardIsLeft = 0U;
 
 static EH_HandleTypeDef errorHandler;
 static struct CAN_scheduledMsgList canBuffer;
@@ -118,14 +118,11 @@ static void HandleSafeState(void)
 			brakeChangeFlag   = 1U;
 			reverseChangeFlag = 1U;
 
-			LED_ChangeState(&ledSafeState,       LED_ON);
+			LED_ChangeState(&ledSafeState,       LED_BLINK);
 			LED_ChangeState(&ledDirection,       LED_BLINK);
-			LED_ChangeState(&ledSidePosition,    LED_OFF);
-			if (boardIsLeft)
-			{
-				LED_ChangeState(&ledLongLight, LED_OFF);
-			}
-			LED_ChangeState(&ledPositionCircles, LED_OFF);
+			LED_ChangeState(&ledSidePosition,    LED_ON);
+			LED_ChangeState(&ledLongLight, LED_ON);
+			LED_ChangeState(&ledPositionCircles, LED_ON);
 		}
 	}
 	else if (safeStateActive && (HAL_GetTick() - safeStateTimer > SAFE_STATE_DURATION_MS))
