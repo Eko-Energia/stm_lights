@@ -29,7 +29,7 @@ extern const uint8_t boardIsLeft;
 #define STATUS_FRAME_ID_FL (0x761)
 
 /** Transmit period of the status frame, in milliseconds. */
-#define STATUS_FRAME_PERIOD_MS (100)
+#define STATUS_FRAME_PERIOD_MS (5000)
 /** Status frame payload length; one byte holds all seven output bits. */
 #define STATUS_FRAME_DLC (1)
 
