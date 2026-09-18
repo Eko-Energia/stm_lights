@@ -34,7 +34,7 @@
  * so any nonzero reading counts as braking - raise these if sensor noise causes
  * the lamp to flicker at rest.
  */
-#define BREAK_HALL_EPS (3)
+#define BREAK_HALL_EPS (3)    // Reacting directly over 0% could be sensible for random interference etc.
 #define BREAK_LINEAR_EPS (99) // BrakesLinear shows always 5/6 % as it's not calibrated/doesn't work.
 
 /** PRND value that means reverse. DBC enum: 0 P, 1 R, 2 N, 3 D. */
