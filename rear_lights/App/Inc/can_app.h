@@ -24,9 +24,9 @@
 #define SAFE_STATE_SYNC_TICK_FRAME_ID (30)
 
 /** Byte index of BrakesLinear inside the pedals frame (DBC bit 8, length 8). */
-#define BREAKS_LINEAR_INTPOS (1)
+#define BREAKS_LINEAR_INTPOS (0)
 /** Byte index of BrakesHall inside the pedals frame (DBC bit 16, length 8). */
-#define BREAKS_HALL_INTPOS (2)
+#define BREAKS_HALL_INTPOS (1)
 
 /*
  * Brake-detection thresholds. Both sensors report 0-100 %, and the brake lamp
@@ -34,8 +34,8 @@
  * so any nonzero reading counts as braking - raise these if sensor noise causes
  * the lamp to flicker at rest.
  */
-#define BREAK_HALL_EPS (0)
-#define BREAK_LINEAR_EPS (0)
+#define BREAK_HALL_EPS (3)    // Reacting directly over 0% could be sensible for random interference etc.
+#define BREAK_LINEAR_EPS (255) // BrakesLinear shows always 5/6 % as it's not calibrated/doesn't work.
 
 /** PRND value that means reverse. DBC enum: 0 P, 1 R, 2 N, 3 D. */
 #define PRND_REVERSE_VALUE (1)

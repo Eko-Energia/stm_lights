@@ -15,7 +15,7 @@
 extern CAN_HandleTypeDef hcan;
 
 // Build target: 1U = left-back board, 0U = right-back board.
-const uint8_t boardIsLeft = 0U;
+const uint8_t boardIsLeft = 1U;
 
 static EH_HandleTypeDef errorHandler;
 static struct CAN_scheduledMsgList canBuffer;
